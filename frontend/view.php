@@ -1,12 +1,8 @@
 <?php
-$filePath = "../backend/database.txt";
+require '../backend/connection.php'; 
 
-if(!file_exists($filePath)){
-    die("No data found.");
-}
-
-$content = file_get_contents($filePath);
-$records = explode("=====================", $content);
+$stmt = $pdo->query("SELECT * FROM student");
+$students = $stmt->fetchAll();
 ?>
 
 <!DOCTYPE html>
@@ -89,51 +85,44 @@ $records = explode("=====================", $content);
         </tr>
 
         <?php
-        foreach($records as $record){
-
-            $record = trim($record);
-            if(empty($record)) continue;
-
-            $lines = explode("\n", $record);
-            $user = [];
-
-            foreach($lines as $line){
-                if(strpos($line, ":") !== false){
-                    list($key, $value) = explode(":", $line, 2);
-                    $user[trim($key)] = trim($value);
-                }
-            }
+        foreach($students as $user){
+            $skillsArr = json_decode($user['skills'], true);
+            $displaySkills = is_array($skillsArr) ? implode(", ", $skillsArr) : $user['skills'];
 
             echo "<tr>";
-            echo "<td>".($user['ID'] ?? '')."</td>";
-            echo "<td>".($user['First Name'] ?? '')."</td>";
-            echo "<td>".($user['Last Name'] ?? '')."</td>";
-            echo "<td>".($user['Address'] ?? '')."</td>";
-            echo "<td>" . htmlspecialchars($user['Country'] ?? '') . "</td>";
-            echo "<td>".($user['Gender'] ?? '')."</td>";
-            echo "<td>".($user['Skills'] ?? '')."</td>";
-            echo "<td>".($user['Department'] ?? '')."</td>";
+            echo "<td>" . htmlspecialchars($user['id']) . "</td>";
+            echo "<td>" . htmlspecialchars($user['f_name']) . "</td>";
+            echo "<td>" . htmlspecialchars($user['l_name']) . "</td>";
+            echo "<td>" . htmlspecialchars($user['address']) . "</td>";
+            echo "<td>" . htmlspecialchars($user['country']) . "</td>";
+            echo "<td>" . ucfirst(htmlspecialchars($user['gender'])) . "</td>";
+            echo "<td>" . htmlspecialchars($displaySkills) . "</td>";
+            echo "<td>" . htmlspecialchars($user['department']) . "</td>";
 
-            // Edit Button
-            echo "<td><a href='../backend/edit.php?id=".($user['ID'] ?? '')."'>
-                    <button class='edit-button'>Edit</button>
-                  </a></td>";
-
-
-            // Delete Button
+            // Edit Button - Points to your edit.php with the ID
             echo "<td>
-            <a href='../backend/delete.php?id=".($user['ID'] ?? '')."' 
-                onclick=\"return confirm('Are you sure you want to delete this user?');\" 
-                style='padding:5px 10px; background-color:red; color:white; border:none; cursor:pointer; text-decoration:none; display:inline-block;'>
-                Delete
-            </a>
+                <a href='../backend/edit.php?id=" . $user['id'] . "' 
+                class='edit-button'
+                style='padding:5px 10px; background-color:orange; color:white; text-decoration:none; display:inline-block;'>
+                Edit
+                </a>
             </td>";
 
-            //view employee Button
+            // Delete Button - Points to your controller with action=delete
             echo "<td>
-            <a href='view_emp.php?id=".($user['ID'] ?? '')."'>
-            <button style='padding:5px 10px; background-color:blue; color:white; border:none; cursor:pointer;'>View</button>
-            </a>
+                <a href='../backend/delete.php?action=delete&id=" . $user['id'] . "' 
+                onclick=\"return confirm('Are you sure you want to delete this user?');\" 
+                style='padding:5px 10px; background-color:red; color:white; text-decoration:none; display:inline-block;'>
+                Delete
+                </a>
+            </td>";
+
+            // View Button
+            echo "<td>
+                <a href='view_emp.php?id=" . $user['id'] . "' 
+                style='padding:5px 10px; background-color:blue; color:white; text-decoration:none; display:inline-block;'>
+                View
+                </a>
             </td>";
         }
         ?>

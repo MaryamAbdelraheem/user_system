@@ -1,42 +1,41 @@
 <?php
-$filePath = "database.txt";
+require('connection.php');
 
-if(!isset($_GET['id'])) {
+if (!isset($_GET['id'])) {
     die("No ID provided to edit.");
 }
 
 $editId = $_GET['id'];
 
-// Read file content
-$content = file_get_contents($filePath);
-$records = explode("=====================", $content);
+try {
+    $stmt = $pdo->prepare("SELECT * FROM student WHERE id = ?");
+    $stmt->execute([$editId]);
+    $userData = $stmt->fetch(PDO::FETCH_ASSOC);
 
-// Initialize empty user array
-$userData = [];
-
-foreach($records as $record){
-    $record = trim($record);
-    if(empty($record)) continue;
-
-    $lines = explode("\n", $record);
-    $user = [];
-
-    foreach($lines as $line){
-        if(strpos($line, ":") !== false){
-            list($key, $value) = explode(":", $line, 2);
-            $user[trim($key)] = trim($value);
-        }
+    if (!$userData) {
+        die("User not found.");
     }
-
-    if(isset($user['ID']) && $user['ID'] == $editId){
-        $userData = $user;
-        break;
-    }
+} catch (PDOException $e) {
+    die("Database error: " . $e->getMessage());
 }
 
-if(empty($userData)){
-    die("User with ID $editId not found.");
+/* ---- Handle Skills Safely ---- */
+$userSkills = [];
+
+if (!empty($userData['skills'])) {
+
+    // Try decode as JSON first
+    $decoded = json_decode($userData['skills'], true);
+
+    if (is_array($decoded)) {
+        $userSkills = $decoded;  // If stored as JSON
+    } else {
+        // If stored as comma separated string
+        $userSkills = explode(", ", $userData['skills']);
+    }
 }
+?>
+
 ?>
 
 <!DOCTYPE html>
@@ -112,21 +111,21 @@ if(empty($userData)){
 <form action="update.php" method="post" class="form-container">
 
     <!-- Send ID as hidden field -->
-    <input type="hidden" name="id" value="<?php echo $userData['ID']; ?>">
+    <input type="hidden" name="id" value="<?php echo $editId; ?>">
 
     <div class="form-row">
         <label>First Name</label>
-        <input type="text" name="first_name" value="<?php echo $userData['First Name']; ?>" required>
+        <input type="text" name="first_name" value="<?php echo htmlspecialchars($userData['f_name']); ?>" required>
     </div>
 
     <div class="form-row">
         <label>Last Name</label>
-        <input type="text" name="last_name" value="<?php echo $userData['Last Name']; ?>" required>
+        <input type="text" name="last_name" value="<?php echo htmlspecialchars($userData['l_name']); ?>" required>
     </div>
 
     <div class="form-row">
         <label>Address</label>
-        <textarea name="address"><?php echo $userData['Address']; ?></textarea>
+        <textarea name="address"><?php echo htmlspecialchars($userData['address']); ?></textarea>
     </div>
 
     <div class="form-row">
@@ -134,7 +133,7 @@ if(empty($userData)){
         <select name="country" required>
         <?php
         $countries = ["Egypt", "USA"];
-        $currentCountry = $userData['Country'] ?? "";
+        $currentCountry = htmlspecialchars($userData['country']) ?? "";
         echo '<option value="">Select Country</option>';
         foreach($countries as $c){
             $selected = ($c == $currentCountry) ? "selected" : "";
@@ -147,20 +146,21 @@ if(empty($userData)){
     <div class="form-row">
         <label>Gender</label>
         <div class="inline">
-            <input type="radio" name="gender" value="Male" <?php if($userData['Gender']=='Male') echo "checked"; ?>> Male
-            <input type="radio" name="gender" value="Female" <?php if($userData['Gender']=='Female') echo "checked"; ?>> Female
+            <input type="radio" name="gender" value="Male" <?php if(htmlspecialchars($userData['gender'])=='Male') echo "checked"; ?>> Male
+            <input type="radio" name="gender" value="Female" <?php if(htmlspecialchars($userData['gender'])=='Female') echo "checked"; ?>> Female
         </div>
     </div>
 
     <div class="form-row">
-        <label>Skills</label>
-        <div class="inline">
-            <?php
-            $skillsArr = explode(", ", $userData['Skills']);
+    <label>Skills</label>
+     <div class="inline">
+         <?php
+            $skillsArr = $userSkills; 
             $allSkills = ["PHP", "MySQL", "J2SE", "PostgreSQL"];
+
             foreach($allSkills as $skill){
-                $checked = in_array($skill, $skillsArr) ? "checked" : "";
-                echo '<input type="checkbox" name="skills[]" value="'.$skill.'" '.$checked.'> '.$skill;
+            $checked = in_array($skill, $skillsArr) ? "checked" : "";
+              echo '<input type="checkbox" name="skills[]" value="'.$skill.'" '.$checked.'> '.$skill;
             }
             ?>
         </div>
@@ -168,7 +168,7 @@ if(empty($userData)){
 
     <div class="form-row">
         <label>Department</label>
-        <input type="text" name="department" value="<?php echo $userData['Department']; ?>" readonly>
+        <input type="text" name="department" value="<?php echo $userData['department']; ?>" readonly>
     </div>
 
     <div class="buttons">

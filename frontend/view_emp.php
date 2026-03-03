@@ -1,38 +1,35 @@
 <?php
-if(!isset($_GET['id'])) {
+
+require '../backend/connection.php';
+
+
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+ if(!isset($_GET['id'])) {
     die("No employee ID provided.");
-}
+    }
+    $empId = $_GET['id'];
+    try {
 
-$empId = $_GET['id'];
-$filePath = "../backend/database.txt";
+    $stmt = $pdo->prepare("SELECT * FROM student WHERE id = ?");
+    $stmt->execute([$empId]);
+    $employee = $stmt->fetch(PDO::FETCH_ASSOC);
 
-// Read file and split records
-$content = file_get_contents($filePath);
-$records = explode("=====================", $content);
-$employee = null;
-
-foreach($records as $record){
-    $record = trim($record);
-    if(empty($record)) continue;
-
-    $lines = explode("\n", $record);
-    $user = [];
-    foreach($lines as $line){
-        if(strpos($line, ":") !== false){
-            list($key, $value) = explode(":", $line, 2);
-            $user[trim($key)] = trim($value);
-        }
+    if(!$employee){
+        die("Employee not found in the system.");
     }
 
-    if(isset($user['ID']) && $user['ID'] == $empId){
-        $employee = $user;
-        break;
-    }
+    
+    $skillsArr = json_decode($employee['skills'], true);
+    $displaySkills = is_array($skillsArr) ? implode(", ", $skillsArr) : "None";
+
+    } catch (PDOException $e) {
+    die("Database Error: " . $e->getMessage());
 }
 
-if(!$employee){
-    die("Employee not found.");
-}
+
 ?>
 
 <!DOCTYPE html>
@@ -51,21 +48,19 @@ if(!$employee){
     </style>
 </head>
 <body>
+    <div class="card">
+        <h2><?php echo htmlspecialchars($employee['f_name'] . " " . $employee['l_name']); ?></h2>
 
-<div class="card">
-    <h2><?php echo htmlspecialchars($employee['First Name'] . " " . $employee['Last Name']); ?></h2>
+        <p><strong>ID:</strong> <?php echo htmlspecialchars($employee['id']); ?></p>
+        <p><strong>Username:</strong> <?php echo htmlspecialchars($employee['username']); ?></p>
+        <p><strong>Address:</strong> <?php echo htmlspecialchars($employee['address'] ?: 'N/A'); ?></p>
+        <p><strong>Country:</strong> <?php echo htmlspecialchars($employee['country'] ?: 'Not Specified'); ?></p>
+        <p><strong>Gender:</strong> <?php echo ucfirst(htmlspecialchars($employee['gender'])); ?></p>
+        <p><strong>Skills:</strong> <?php echo htmlspecialchars($displaySkills); ?></p>
+        <p><strong>Department:</strong> <?php echo htmlspecialchars($employee['department']); ?></p>
+    </div>
 
-    <p><strong>ID:</strong> <?php echo htmlspecialchars($employee['ID']); ?></p>
-    <p><strong>Address:</strong> <?php echo htmlspecialchars($employee['Address']); ?></p>
-    <p><strong>Country:</strong> <?php echo htmlspecialchars($employee['Country'] ?? ''); ?></p>
-    <p><strong>Gender:</strong> <?php echo htmlspecialchars($employee['Gender']); ?></p>
-    <p><strong>Skills:</strong> <?php echo htmlspecialchars($employee['Skills']); ?></p>
-    <p><strong>Department:</strong> <?php echo htmlspecialchars($employee['Department']); ?></p>
-</div>
-
-<div class="back-btn">
-    <a href="view.php"><button>Back to All Employees</button></a>
-</div>
-
-</body>
+    <div class="back-btn">
+        <a href="view.php"><button>Back to All Employees</button></a>
+    </div>
 </html>

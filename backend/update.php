@@ -1,65 +1,60 @@
 <?php
-$filePath = "database.txt";
+require 'connection.php';
 
 // Check if form was submitted
-if(!isset($_POST['id'])) {
+if (!isset($_POST['id'])) {
     die("No ID provided.");
 }
 
-$editId = $_POST['id'];
+$editId    = $_POST['id'];
+$firstName = $_POST['first_name'] ?? '';
+$lastName  = $_POST['last_name'] ?? '';
+$address   = $_POST['address'] ?? '';
+$country   = $_POST['country'] ?? '';
+$gender    = $_POST['gender'] ?? '';
+$department = $_POST['department'] ?? '';
 
-// Collect form data
-$firstName = $_POST['first_name'];
-$lastName  = $_POST['last_name'];
-$address   = $_POST['address'];
-$country   = $_POST['country'];
-$gender    = $_POST['gender'];
-$skills    = isset($_POST['skills']) ? $_POST['skills'] : [];
-$department= $_POST['department'];
+// Handle skills safely (store as JSON)
+$skills = isset($_POST['skills']) 
+    ? json_encode($_POST['skills']) 
+    : json_encode([]);
 
-// Read file and split records
-$content = file_get_contents($filePath);
-$records = explode("=====================", $content);
-
-$newContent = "";
-
-foreach($records as $record){
-    $record = trim($record);
-    if(empty($record)) continue;
-
-    $lines = explode("\n", $record);
-    $user = [];
-    foreach($lines as $line){
-        if(strpos($line, ":") !== false){
-            list($key, $value) = explode(":", $line, 2);
-            $user[trim($key)] = trim($value);
-        }
-    }
-
-    // Check if this is the user to update
-    if(isset($user['ID']) && $user['ID'] == $editId){
-        // Replace with new data
-        $user['First Name'] = $firstName;
-        $user['Last Name']  = $lastName;
-        $user['Address']    = $address;
-        $user['Country']    = $country; 
-        $user['Gender']     = $gender;
-        $user['Skills']     = implode(", ", $skills);
-        $user['Department'] = $department;
-    }
-
-    // Rebuild the record
-    $newContent .= "=====================\n";
-    foreach($user as $key => $value){
-        $newContent .= $key . ": " . $value . "\n";
-    }
-    $newContent .= "\n"; // spacing between records
+// Basic validation
+if (empty($firstName) || empty($lastName)) {
+    die("First name and last name are required.");
 }
 
-// Write back to file
-file_put_contents($filePath, $newContent);
+try {
 
-// Redirect back to view page
+    $stmt = $pdo->prepare("
+        UPDATE student 
+        SET 
+            f_name = ?, 
+            l_name = ?, 
+            address = ?, 
+            country = ?, 
+            gender = ?, 
+            skills = ?, 
+            department = ?
+        WHERE id = ?
+    ");
+
+    $stmt->execute([
+        $firstName,
+        $lastName,
+        $address,
+        $country,
+        $gender,
+        $skills,
+        $department,
+        $editId
+    ]);
+
+} catch (PDOException $e) {
+    die("Update failed: " . $e->getMessage());
+}
+
+// Redirect after update
 header("Location: ../frontend/view.php");
 exit;
 ?>
