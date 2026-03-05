@@ -26,52 +26,85 @@
 <body>
 
 <?php
-// 1. Get form data
-$firstName  = $_POST['first_name'] ?? "";
-$lastName   = $_POST['last_name'] ?? "";
-$address    = $_POST['address'] ?? "";
-$country    = $_POST['country'] ?? "";
-$gender     = $_POST['gender'] ?? "";
-$skills     = $_POST['skills'] ?? [];
-$department = $_POST['department'] ?? "";
 
-// 2. Determine title
-$title = "";
-if ($gender === "Male") {
-    $title = "Mr.";
-} elseif ($gender === "Female") {
-    $title = "Miss";
+require '../backend/connection.php';
+
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../frontend/login.php");
+    exit;
 }
 
-?>
 
 
-<h2>Thanks (<?php echo $title; ?>) <?php echo htmlspecialchars($firstName . " " . $lastName); ?></h2>
+try {
+    $username = $_SESSION['username'];
+    $stmt = $pdo->prepare("SELECT * FROM student WHERE username = ?");
+    $stmt->execute([$username]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-<h3>Please Review Your Information:</h3>
 
-<p><strong>Name:</strong> <?php echo htmlspecialchars($firstName . " " . $lastName); ?></p>
-
-<p><strong>Address:</strong> <?php echo htmlspecialchars($address); ?></p>
-
-<p><strong>Your Skills:</strong></p>
-<?php
-if (!empty($skills)) {
-    foreach ($skills as $skill) {
-        echo htmlspecialchars($skill) . "<br>";
+    if (!$user) {
+        die("User not found.");
     }
+
+    // Assign values
+    $firstName  = $user['f_name'];
+    $lastName   = $user['l_name'];
+    $address    = $user['address'];
+    $country    = $user['country'];
+    $gender     = $user['gender'];
+    $skills     = json_decode($user['skills'], true); // decode JSON
+    $department = $user['department'];
+    $profileImage = $user['profile_image'] ?? 'default.png';
+
+    // 2. Determine title
+    $title = "";
+    if ($gender === "Male") 
+    {
+        $title = "Mr.";
+    } elseif ($gender === "Female") 
+    {
+        $title = "Miss";
+    }
+
+} catch (PDOException $e) {
+    die("Database error: " . $e->getMessage());
+}
+
+?>
+<img src="../uploads/<?php echo htmlspecialchars($profileImage); ?>" width="150" style="border-radius:50%;">
+
+<h2>Welcome <?php echo htmlspecialchars($firstName . " " . $lastName); ?></h2>
+<p><strong>Address:</strong> <?php echo htmlspecialchars($address); ?></p>
+<p><strong>Country:</strong> <?php echo htmlspecialchars($country); ?></p>
+<p><strong>Gender:</strong> <?php echo htmlspecialchars($gender); ?></p>
+<p><strong>Skills:</strong>
+<?php 
+if (!empty($skills)) {
+    echo implode(", ", $skills);
 } else {
-    echo "No skills selected<br>";
+    echo "No skills selected";
 }
 ?>
-
+</p>
 <p><strong>Department:</strong> <?php echo htmlspecialchars($department); ?></p>
+
 
 <div style="text-align:center; margin-top:30px;">
     <a href="view.php">
-        <button class="button">View All Users</button>
+        <button style="
+            padding: 10px 20px; 
+            background-color: #4CAF50; 
+            color: white; 
+            border: none; 
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: 0.3s;
+        " onmouseover="this.style.backgroundColor='#45a049'" onmouseout="this.style.backgroundColor='#4CAF50'">
+            View All Users
+        </button>
     </a>
 </div>
-
 </body>
 </html>

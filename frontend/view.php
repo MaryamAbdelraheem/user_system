@@ -1,6 +1,11 @@
 <?php
 require '../backend/connection.php'; 
 
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit;
+}
+
 $stmt = $pdo->query("SELECT * FROM student");
 $students = $stmt->fetchAll();
 ?>
@@ -127,6 +132,12 @@ $students = $stmt->fetchAll();
         }
         ?>
     </table>
+
+    <div style="text-align:right; margin: 20px;">
+        <a href="../backend/logout.php">
+            <button style="padding:8px 15px; background:red; color:white; border:none; cursor:pointer;">Logout</button>
+        </a>
+    </div>
 
 </div>
 

@@ -1,4 +1,5 @@
 <?php
+session_start(); 
 
 // 1. Load credentials from environment variables (Never hardcode!)
 $host = '127.0.0.1';

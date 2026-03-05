@@ -81,51 +81,10 @@
 
 <body>
 
-<h2 style="text-align:center;">Registration Form</h2>
+<h2 style="text-align:center;">Login Form</h2>
 
-<form action="../backend/save.php" method="post" class="form-container" enctype="multipart/form-data" >
+<form action="../backend/auth(login).php" method="post" class="form-container">
 <!--db.php -> -->
-    <div class="form-row">
-        <label>First Name</label>
-        <input type="text" name="first_name" required>
-    </div>
-
-    <div class="form-row">
-        <label>Last Name</label>
-        <input type="text" name="last_name" required>
-    </div>
-
-    <div class="form-row">
-        <label>Address</label>
-        <textarea name="address"></textarea>
-    </div>
-
-    <div class="form-row">
-        <label>Country</label>
-        <select name="country">
-            <option value="">Select Country</option>
-            <option value="Egypt">Egypt</option>
-            <option value="USA">USA</option>
-        </select>
-    </div>
-
-    <div class="form-row">
-        <label>Gender</label>
-        <div class="inline">
-            <input type="radio" name="gender" value="Male" required> Male
-            <input type="radio" name="gender" value="Female"> Female
-        </div>
-    </div>
-
-    <div class="form-row">
-        <label>Skills</label>
-        <div class="inline">
-            <input type="checkbox" name="skills[]" value="PHP"> PHP
-            <input type="checkbox" name="skills[]" value="MySQL"> MySQL
-            <input type="checkbox" name="skills[]" value="J2SE"> J2SE
-            <input type="checkbox" name="skills[]" value="PostgreSQL"> PostgreSQL
-        </div>
-    </div>
 
     <div class="form-row">
         <label>Username</label>
@@ -137,21 +96,17 @@
         <input type="password" name="password" required>
     </div>
 
-    <div class="form-row">
-        <input type="file" name="profile_image" accept="image/*">
+    <div class="buttons">
+        <input type="submit" value="login">
     </div>
-
-    <div class="form-row">
-        <label>Department</label>
-        <input type="text" name="department" value="OpenSource" readonly>
-    </div>
-
 
     <div class="buttons">
-        <input type="submit" value="Submit">
-        <input type="reset" value="Reset">
+        <a href="../backend/forgot_password.php">Forgot Password?</a>
     </div>
 
+    <div class="buttons">
+        <a href="regisitration.php">You don't have account? sign up</a>
+    </div>
 </form>
 
 </body><!----------------------------------------->

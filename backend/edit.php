@@ -1,6 +1,12 @@
 <?php
 require('connection.php');
 
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php"); 
+    exit;
+}
+
+
 if (!isset($_GET['id'])) {
     die("No ID provided to edit.");
 }
@@ -112,6 +118,11 @@ if (!empty($userData['skills'])) {
 
     <!-- Send ID as hidden field -->
     <input type="hidden" name="id" value="<?php echo $editId; ?>">
+
+    <div class="form-row">
+        <label>Username</label>
+        <input type="text" name="username" value="<?php echo htmlspecialchars($userData['username']); ?>" required>
+    </div>
 
     <div class="form-row">
         <label>First Name</label>

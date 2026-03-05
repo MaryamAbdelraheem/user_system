@@ -1,36 +1,91 @@
 <?php
 
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+
 
 require('connection.php');
+
+$uploadDir = __DIR__ . "/../uploads/";
+$imageName = null;
+
 try{
 // Map form names to your DB columns
-        $fName      = $_POST['first_name'] ?? "";
-        $lName      = $_POST['last_name'] ?? "";
-        $address    = $_POST['address'] ?? "";
-        $country    = $_POST['country'] ?? "";
-        $gender     = strtolower($_POST['gender'] ?? ""); 
+        $fName      = trim($_POST['first_name'] ?? "");
+        $lName      = trim($_POST['last_name'] ?? "");
+        $address    = trim($_POST['address'] ?? "");
+        $country    = trim($_POST['country'] ?? "");
+        $gender     = strtolower($_POST['gender'] ?? "");
         $department = $_POST['department'] ?? "opensource";
-        $username   = $_POST['username'] ?? "";
+        $username   = trim($_POST['username'] ?? "");
         $password   = $_POST['password'] ?? "";
-
-        // Handle JSON skills (Must be json_encoded for MySQL 'json' type)
         $skillsArr  = $_POST['skills'] ?? [];
-        $skillsJson = json_encode($skillsArr); 
 
-        $sql = "INSERT INTO student (f_name, l_name, address, country, gender, department, username, password, skills)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $errors = [];
+        //validation:
+        if(strlen($fName) < 2){
+                $errors[] = "First name must be at least 2 characters";
+        }
+        if(strlen($lName) < 2){
+                $errors[] = "Last name must be at least 2 characters";
+        }
+        if(!in_array($gender, ['male','female'])){
+                $errors[] = "Invalid gender value";
+        }
+        if(strlen($username) < 4){
+                $errors[] = "Username must be at least 4 characters";
+        }
+        if(strlen($password) < 6){
+                $errors[] = "Password must be at least 6 characters";
+        }
+        if(!empty($errors)){
+                foreach ($errors as $error){
+                        echo $error . "<br>";
+                }
+                exit;
+        }
+
+        if(!empty($_FILES['profile_image']['name'])){
+                $fileTmp = $_FILES['profile_image']['tmp_name'];
+                $fileName = $_FILES['profile_image']['name'];
+                $fileSize = $_FILES['profile_image']['size'];
+                $fileExt = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+
+                $allowed = ['jpg', 'jpeg', 'png', 'gif'];
+                if (in_array($fileExt, $allowed) && $fileSize <= 2 * 1024 * 1024){
+                        $newName = uniqid() . "." . $fileExt;
+                        if (!is_dir($uploadDir)) 
+                        {
+                                mkdir($uploadDir, 0777, true);
+                        }
+                        if(move_uploaded_file($fileTmp, $uploadDir . $newName)){
+                                $imageName = $newName;
+                        }else{
+                                die("Image upload failed. Check folder permissions.");
+                        }
+                        
+                }else{
+                        die("Invalid image type or image too large (max 2MB)");
+
+                }
+        }
+        //passwrd -> hashed:
+        $hashedPassword = password_hash($password,PASSWORD_DEFAULT);
+
+        $skillsJson = json_encode($skillsArr);
+        
+        
+
+        $sql = "INSERT INTO student (f_name, l_name, address, country, gender, department, username, password, skills, profile_image)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         $stmt = $pdo->prepare($sql);
-        $stmt->execute([$fName, $lName, $address, $country, $gender, $department, $username, $password, $skillsJson]);
+        $stmt->execute([$fName, $lName, $address, $country, $gender, $department, $username, $hashedPassword, $skillsJson, $imageName]);
 
-        header('Location: ../frontend/view.php?status=saved');
+        header('Location: ../frontend/done.php');
+        
         exit;
 }
 catch(PDOException $e){
-         die("Update failed: " . $e->getMessage());
+         die("insert failed: " . $e->getMessage());
 }
 
 ?>

@@ -1,7 +1,10 @@
 <?php
 require 'connection.php';
+if (!isset($_SESSION['user_id'])) {
+    header("Location: ../frontend/login.php");
+    exit;
+}
 
-// Check if form was submitted
 if (!isset($_POST['id'])) {
     die("No ID provided.");
 }
@@ -19,10 +22,25 @@ $skills = isset($_POST['skills'])
     ? json_encode($_POST['skills']) 
     : json_encode([]);
 
-// Basic validation
-if (empty($firstName) || empty($lastName)) {
-    die("First name and last name are required.");
+// validation
+if (empty($firstName) || strlen($firstName) < 2) {
+    $errors[] = "First name must be at least 2 characters.";
 }
+
+if (empty($lastName) || strlen($lastName) < 2) {
+    $errors[] = "Last name must be at least 2 characters.";
+}
+if (!in_array($gender, ['Male', 'Female'])) {
+    $errors[] = "Gender must be either 'male' or 'female'.";
+}
+
+if (!empty($errors)) {
+    foreach ($errors as $err) {
+        echo $err . "<br>";
+    }
+    exit;
+}
+
 
 try {
 
