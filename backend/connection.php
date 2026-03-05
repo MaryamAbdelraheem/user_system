@@ -1,29 +1,55 @@
 <?php
 session_start(); 
 
-// 1. Load credentials from environment variables (Never hardcode!)
-$host = '127.0.0.1';
-$db   = 'Student_System';
-$user = 'root';
-$pass = 'mrym1609';
-$port = 3306;
-$charset = 'utf8mb4';
+class DB{
+     //holds single instance of this class 
+     private static ?DB $instance = null ;
 
-$dsn = "mysql:host=$host;dbname=$db;port=$port;charset=$charset";
+     private PDO $connection ;
+     private $host = '127.0.0.1';
+     private $db   = 'Student_System';
+     private $user = 'root';
+     private $pass = 'mrym1609';
+     private $port = 3306;
+     private $charset = 'utf8mb4';
 
-$options = [
-    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION, // Throw errors as exceptions
-    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,       // Fetch as associative arrays
-    PDO::ATTR_EMULATE_PREPARES   => false,                  // Use real prepared statements
-];
+     private function __construct()
+     {
+          $dsn = "mysql:host={$this->host};dbname={$this->db};port={$this->port};charset={$this->charset}";
+          $options = [
+               PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION, // Throw errors as exceptions
+               PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,       // Fetch as associative arrays
+               PDO::ATTR_EMULATE_PREPARES   => false,                  // Use real prepared statements
+               ];
+          try{
+               $this->connection = new PDO($dsn, $this->user, $this->pass, $options);
 
-try {
-     $pdo = new PDO($dsn, $user, $pass, $options);
-     // Connection successful
-} catch (\PDOException $e) {
-     // Log the error, don't show $e->getMessage() to the user (security risk)
-     error_log($e->getMessage());
-     exit("Database Connection Error.");
+          }catch(PDOException $e){
+               die('connection error' . $e->getMessage());
+          }
+     }
+     public static function getInstance() :static
+     {
+          if (static::$instance === null){
+               static::$instance = new static();
+          }
+          return static::$instance;
+     }
+     public function getConnection():PDO{
+          return $this->connection;
+
+     }
+     //prevent clone (saftey)
+     private function __clone(){}
+     //prevent unserialization (safety)
+     public function __wakeup(){
+          throw new \Exception("Cannot unserialize a Singleton.");
+     }
 }
 
+/*use:
+$pdo = Database::getInstance()->getConnection();
+$stmt = $pdo->prepare("SELECT * FROM students WHERE id = ?");
+$stmt->execute([$id]);
+*/
 ?>

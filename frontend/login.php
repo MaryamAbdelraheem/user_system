@@ -83,7 +83,7 @@
 
 <h2 style="text-align:center;">Login Form</h2>
 
-<form action="../backend/auth(login).php" method="post" class="form-container">
+<form action="../backend/controller/auth(login).php" method="post" class="form-container">
 <!--db.php -> -->
 
     <div class="form-row">

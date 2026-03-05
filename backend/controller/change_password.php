@@ -1,8 +1,10 @@
 <?php
-    require 'connection.php';
+
+    require_once '../connection.php';
+    require_once '../model/Student.php';
 
     if (!isset($_SESSION['user_id'])) {
-        header("Location: login.php");
+        header("Location: ../../frontend/login.php");
         exit;
     }
 
@@ -25,19 +27,19 @@
         if($newPassword !== $confirmPassword){
             $errors[] = "New password and confirm password do not match.";
         }
-        if(empty($errors)){
-            //get current pass hash
-            $stmt = $pdo->prepare("SELECT password FROM student WHERE id = ?");
-            $stmt->execute([$_SESSION['user_id']]);
-            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (empty($errors)) {
+        $student = new Student();
 
+            // 1. Get current hashed password
+            $user = $student->getById($_SESSION['user_id'], ['password']);
+
+            // 2. Verify old password
             if (!$user || !password_verify($oldPassword, $user['password'])) {
                 $errors[] = "Old password is incorrect.";
-            }else{
-                //update password\
+            } else {
+                // 3. Hash and update
                 $newHash = password_hash($newPassword, PASSWORD_DEFAULT);
-                $stmt = $pdo->prepare("UPDATE student SET password = ? WHERE id = ?");
-                $stmt->execute([$newHash, $_SESSION['user_id']]);
+                $student->update($_SESSION['user_id'], ['password'=> $newHash]);
                 $success = "Password updated successfully!";
             }
         }
@@ -85,7 +87,7 @@
     </form>
 
     <div style="text-align:center; margin-top:15px;">
-        <a href="../frontend/view.php">Back to Dashboard</a>
+        <a href="../../frontend/view.php">Back to Dashboard</a>
     </div>
 </div>
 </body>

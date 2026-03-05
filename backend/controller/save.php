@@ -1,10 +1,11 @@
 <?php
 
 
+require('../connection.php');
+require_once '../model/Student.php';
 
-require('connection.php');
 
-$uploadDir = __DIR__ . "/../uploads/";
+$uploadDir = __DIR__ . "/../../uploads/";
 $imageName = null;
 
 try{
@@ -72,17 +73,23 @@ try{
 
         $skillsJson = json_encode($skillsArr);
         
+        $student = new Student();
+        $student->create([
+                'f_name' => $fName,
+                'l_name' => $lName,
+                'address'=> $address,
+                'country'=> $country,
+                'gender' =>$gender,
+                'department' =>$department,
+                'username' =>$username,
+                'password' =>$password,
+                'skills' => $skillsJson,
+                'profile_image'=>$imageName 
+        ]);
         
-
-        $sql = "INSERT INTO student (f_name, l_name, address, country, gender, department, username, password, skills, profile_image)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-        $stmt = $pdo->prepare($sql);
-        $stmt->execute([$fName, $lName, $address, $country, $gender, $department, $username, $hashedPassword, $skillsJson, $imageName]);
-
-        header('Location: ../frontend/done.php');
+        header('Location: ../../frontend/done.php');
         
-        exit;
+        exit; 
 }
 catch(PDOException $e){
          die("insert failed: " . $e->getMessage());

@@ -83,7 +83,7 @@
 
 <h2 style="text-align:center;">Registration Form</h2>
 
-<form action="../backend/save.php" method="post" class="form-container" enctype="multipart/form-data" >
+<form action="../backend/controller/save.php" method="post" class="form-container" enctype="multipart/form-data" >
 <!--db.php -> -->
     <div class="form-row">
         <label>First Name</label>

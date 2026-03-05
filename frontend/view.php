@@ -1,13 +1,16 @@
 <?php
-require '../backend/connection.php'; 
+require_once '../backend/connection.php';
+require_once '../backend/model/Student.php';
+
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit;
 }
 
-$stmt = $pdo->query("SELECT * FROM student");
-$students = $stmt->fetchAll();
+$students = new Student();
+$students = $students->getAll();
+
 ?>
 
 <!DOCTYPE html>
@@ -106,7 +109,7 @@ $students = $stmt->fetchAll();
 
             // Edit Button - Points to your edit.php with the ID
             echo "<td>
-                <a href='../backend/edit.php?id=" . $user['id'] . "' 
+                <a href='../backend/controller/edit.php?id=" . $user['id'] . "' 
                 class='edit-button'
                 style='padding:5px 10px; background-color:orange; color:white; text-decoration:none; display:inline-block;'>
                 Edit
@@ -115,7 +118,7 @@ $students = $stmt->fetchAll();
 
             // Delete Button - Points to your controller with action=delete
             echo "<td>
-                <a href='../backend/delete.php?action=delete&id=" . $user['id'] . "' 
+                <a href='../backend/controller/delete.php?action=delete&id=" . $user['id'] . "' 
                 onclick=\"return confirm('Are you sure you want to delete this user?');\" 
                 style='padding:5px 10px; background-color:red; color:white; text-decoration:none; display:inline-block;'>
                 Delete
@@ -134,7 +137,7 @@ $students = $stmt->fetchAll();
     </table>
 
     <div style="text-align:right; margin: 20px;">
-        <a href="../backend/logout.php">
+        <a href="../backend/controller/logout.php">
             <button style="padding:8px 15px; background:red; color:white; border:none; cursor:pointer;">Logout</button>
         </a>
     </div>

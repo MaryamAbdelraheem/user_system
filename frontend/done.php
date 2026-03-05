@@ -27,7 +27,8 @@
 
 <?php
 
-require '../backend/connection.php';
+require_once '../backend/connection.php';
+require_once '../backend/model/Student.php';
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../frontend/login.php");
@@ -37,10 +38,8 @@ if (!isset($_SESSION['user_id'])) {
 
 
 try {
-    $username = $_SESSION['username'];
-    $stmt = $pdo->prepare("SELECT * FROM student WHERE username = ?");
-    $stmt->execute([$username]);
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    $student = new Student();
+    $user = $student->getByColumn('username', $_SESSION['username']);
 
 
     if (!$user) {
@@ -58,14 +57,11 @@ try {
     $profileImage = $user['profile_image'] ?? 'default.png';
 
     // 2. Determine title
-    $title = "";
-    if ($gender === "Male") 
-    {
-        $title = "Mr.";
-    } elseif ($gender === "Female") 
-    {
-        $title = "Miss";
-    }
+    $title = match($gender) {
+        'Male'   => 'Mr.',
+        'Female' => 'Miss',
+        default  => ''
+    };
 
 } catch (PDOException $e) {
     die("Database error: " . $e->getMessage());

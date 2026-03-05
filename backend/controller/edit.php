@@ -1,8 +1,9 @@
 <?php
-require('connection.php');
+require '../connection.php';
+require_once '../model/Student.php';
 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php"); 
+    header("Location: ../../frontend/login.php"); 
     exit;
 }
 
@@ -11,12 +12,12 @@ if (!isset($_GET['id'])) {
     die("No ID provided to edit.");
 }
 
-$editId = $_GET['id'];
+$editId = (int)$_GET['id'];
 
 try {
-    $stmt = $pdo->prepare("SELECT * FROM student WHERE id = ?");
-    $stmt->execute([$editId]);
-    $userData = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    $student = new Student();
+    $userData = $student->getById($editId);
 
     if (!$userData) {
         die("User not found.");

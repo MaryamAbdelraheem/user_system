@@ -1,7 +1,9 @@
 <?php
-require 'connection.php';
+require '../connection.php';
+require_once '../model/Student.php';
+
 if (!isset($_SESSION['user_id'])) {
-    header("Location: ../frontend/login.php");
+    header("Location: ../../frontend/login.php");
     exit;
 }
 
@@ -43,29 +45,15 @@ if (!empty($errors)) {
 
 
 try {
-
-    $stmt = $pdo->prepare("
-        UPDATE student 
-        SET 
-            f_name = ?, 
-            l_name = ?, 
-            address = ?, 
-            country = ?, 
-            gender = ?, 
-            skills = ?, 
-            department = ?
-        WHERE id = ?
-    ");
-
-    $stmt->execute([
-        $firstName,
-        $lastName,
-        $address,
-        $country,
-        $gender,
-        $skills,
-        $department,
-        $editId
+    $student = new Student();
+    $student->update($editId, [
+        'f_name'     => $firstName,
+        'l_name'     => $lastName,
+        'address'    => $address,
+        'country'    => $country,
+        'gender'     => $gender,
+        'skills'     => $skills,   
+        'department' => $department
     ]);
 
 } catch (PDOException $e) {
@@ -73,6 +61,6 @@ try {
 }
 
 // Redirect after update
-header("Location: ../frontend/view.php");
+header("Location: ../../frontend/view.php");
 exit;
 ?>
