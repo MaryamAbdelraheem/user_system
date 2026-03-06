@@ -1,48 +1,7 @@
 <?php
-require '../connection.php';
-require_once '../model/Student.php';
 
-if (!isset($_SESSION['user_id'])) {
-    header("Location: ../../frontend/login.php"); 
-    exit;
-}
-
-
-if (!isset($_GET['id'])) {
-    die("No ID provided to edit.");
-}
-
-$editId = (int)$_GET['id'];
-
-try {
-
-    $student = new Student();
-    $userData = $student->getById($editId);
-
-    if (!$userData) {
-        die("User not found.");
-    }
-} catch (PDOException $e) {
-    die("Database error: " . $e->getMessage());
-}
-
-/* ---- Handle Skills Safely ---- */
-$userSkills = [];
-
-if (!empty($userData['skills'])) {
-
-    // Try decode as JSON first
-    $decoded = json_decode($userData['skills'], true);
-
-    if (is_array($decoded)) {
-        $userSkills = $decoded;  // If stored as JSON
-    } else {
-        // If stored as comma separated string
-        $userSkills = explode(", ", $userData['skills']);
-    }
-}
-?>
-
+require_once '../backend/connection.php';
+require_once '../backend/model/Student.php';
 ?>
 
 <!DOCTYPE html>
@@ -115,10 +74,10 @@ if (!empty($userData['skills'])) {
 
 <h2 style="text-align:center;">Edit User</h2>
 
-<form action="update.php" method="post" class="form-container">
+<form action="../backend/controller/studentController.php" method="post" class="form-container">
+    <input type="hidden" name="action" value="update">
+    <input type="hidden" name="id"     value="<?= $editId ?>">
 
-    <!-- Send ID as hidden field -->
-    <input type="hidden" name="id" value="<?php echo $editId; ?>">
 
     <div class="form-row">
         <label>Username</label>

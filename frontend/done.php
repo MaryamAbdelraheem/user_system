@@ -30,8 +30,9 @@
 require_once '../backend/connection.php';
 require_once '../backend/model/Student.php';
 
+
 if (!isset($_SESSION['user_id'])) {
-    header("Location: ../frontend/login.php");
+    header("Location: login.php");
     exit;
 }
 

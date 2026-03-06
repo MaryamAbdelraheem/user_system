@@ -83,7 +83,8 @@
 
 <h2 style="text-align:center;">Registration Form</h2>
 
-<form action="../backend/controller/save.php" method="post" class="form-container" enctype="multipart/form-data" >
+<form action="../backend/controller/authController.php" method="post" class="form-container" enctype="multipart/form-data" >
+<input type="hidden" name="action" value="register">
 <!--db.php -> -->
     <div class="form-row">
         <label>First Name</label>
